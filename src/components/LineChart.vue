@@ -94,6 +94,7 @@
 import { defineComponent } from 'vue'
 import ChartMixin from '../mixins/ChartMixin.vue'
 import { isHighPivot } from '../utils/lineChart'
+import type { PolylineAttributes } from '../types/attributes.types';
 
 export default defineComponent({
   mixins: [ChartMixin],
@@ -114,14 +115,14 @@ export default defineComponent({
   emits: ['point:click'],
   data() {
     return {
-      hoveredPoint: null
+      hoveredPoint: -1
     }
   },
   computed: {
     getMaxBarHeight(): number {
       return this.getHeight - this.getGap * 2
     },
-    getPolylineProps(): object {
+    getPolylineProps(): PolylineAttributes {
       const maxValue = this.getMaxValueTick
       const firstLineX = this.getGap * 3 + this.getSectionWidth / 2
       const firstLineY =
@@ -190,9 +191,9 @@ export default defineComponent({
           this.hoveredPoint = index
         },
         onMouseleave: () => {
-          this.hoveredPoint = null
+          this.hoveredPoint = -1
         },
-        onClick: (event) => {
+        onClick: (event: Event) => {
           this.$emit('point:click', {
             component: this,
             event: event,

@@ -54,7 +54,7 @@
             v-for="(value, index) in getValues"
             :key="index"
             :class="{ animation: animation }"
-            v-bind="getBarProps(index, false)"
+            v-bind="getBarProps(index)"
           ></rect>
           <g v-if="showValueLabels">
             <text
@@ -133,7 +133,7 @@ export default defineComponent({
   },
   data() {
     return {
-      hoveredBarIndex: null
+      hoveredBarIndex: -1
     }
   },
   emits: ['bar:click'],
@@ -178,9 +178,9 @@ export default defineComponent({
           this.hoveredBarIndex = index
         },
         onMouseleave: () => {
-          this.hoveredBarIndex = null
+          this.hoveredBarIndex = -1
         },
-        onClick: (event) => {
+        onClick: (event: Event) => {
           this.$emit('bar:click', {
             component: this,
             event: event,

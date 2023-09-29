@@ -1,30 +1,15 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import type { PropType } from 'vue'
+import type { GridLineOptions, Breakpoints, Breakpoint } from '../types/chartProps.types'
 import {
   generateUniqueId,
   shortenNumber,
   findNearestMultiple,
   calculateWidthOfText
 } from '../utils/general'
-
-interface Breakpoint {
-  width: String
-  gap: String
-}
-
-interface Breakpoints {
-  xs: Breakpoint
-  sm: Breakpoint
-  md: Breakpoint
-  lg: Breakpoint
-  xl: Breakpoint
-}
-
-interface GridLineOptions {
-  stroke: String
-  'stroke-width': String
-}
+import type { SVGAttributes } from 'vue'
+import type { AxisTitleAttributes } from "../types/attributes.types"
 
 export default defineComponent({
   props: {
@@ -43,12 +28,12 @@ export default defineComponent({
     },
     argumentField: {
       type: String,
-      default: undefined,
+      default: '',
       required: true
     },
     valueField: {
       type: String,
-      default: undefined,
+      default: '',
       required: true
     },
     showValueLabels: {
@@ -148,19 +133,19 @@ export default defineComponent({
   },
   data() {
     return {
-      uniqueId: null,
+      uniqueId: '',
       svgWidth: 0,
       windowWidth: window.innerWidth,
       localDataSource: [...this.dataSource]
     }
   },
   computed: {
-    getId(): String {
+    getId(): string {
       return this.uniqueId
     },
-    getMaxWidthBreakpoint(): Breakpoint {
+    getMaxWidthBreakpoint(): Breakpoint | null {
       let maxWidth: number = 0
-      let maxBreakpoint: Breakpoint = null
+      let maxBreakpoint: Breakpoint | null = null
 
       Object.keys(this.breakpoints).forEach((key) => {
         const { width } = this.breakpoints[key]
@@ -172,7 +157,7 @@ export default defineComponent({
 
       return maxBreakpoint
     },
-    getCurrentBreakpoint(): Breakpoint {
+    getCurrentBreakpoint(): Breakpoint | null {
       const windowWidth = this.windowWidth
       const breakpoints = this.breakpoints
 
@@ -215,10 +200,14 @@ export default defineComponent({
       }
     },
     getValues(): number[] {
-      return this.localDataSource.map((item) => parseInt(item[this.valueField]))
+      if (!this.valueField) return []
+      return this.localDataSource.map((item: { [key: string]: any }) =>
+        parseInt(item[this.valueField])
+      )
     },
     getArguments(): string[] {
-      return this.localDataSource.map((item) => item[this.argumentField])
+      if (!this.argumentField) return []
+      return this.localDataSource.map((item: { [key: string]: any }) => item[this.argumentField])
     },
     getStartFirstSeriesX(): number {
       return this.getGap * 3
@@ -234,6 +223,7 @@ export default defineComponent({
     },
     getGap(): number {
       const currentBreakpoint = this.getCurrentBreakpoint
+      if (!currentBreakpoint) return 0
       return parseFloat(currentBreakpoint.gap.slice(0, -2))
     },
     getSectionWidth(): number {
@@ -294,9 +284,10 @@ export default defineComponent({
     updateSVGSize(): void {
       const svg = this.$refs['svg']
       if (!svg) return
+      // @ts-ignore
       this.svgWidth = svg.clientWidth
     },
-    getArgumentTickProps(index: number): object {
+    getArgumentTickProps(index: number): SVGAttributes {
       const firstTickX = this.getStartFirstSeriesX + this.getSectionWidth + this.getGap / 2
       const startX = firstTickX + index * (this.getSectionWidth + this.getGap)
       const startY = this.getHeight - this.getGap * 2
@@ -307,7 +298,7 @@ export default defineComponent({
         fill: 'none'
       }
     },
-    getArgumentAxisTitleProps(index: number): object {
+    getArgumentAxisTitleProps(index: number): AxisTitleAttributes {
       const barWidthWithGap = this.getSectionWidth + this.getGap
       const titleX = this.getStartFirstSeriesX + this.getSectionWidth / 2 + index * barWidthWithGap
       const titleY = this.getHeight - this.getGap
@@ -319,7 +310,7 @@ export default defineComponent({
       let display = 'block'
       if (index > 0) {
         const { x: prevX, width: prevWidth } = this.getArgumentAxisTitleProps(index - 1)
-        const prevEndX = prevWidth / 2 + prevX
+        const prevEndX = prevWidth / 2 + Number(prevX)
         const currentStartX = titleX - textWidth / 2
         const offset = this.getGap / 4
         const overlaps = currentStartX - offset <= prevEndX
@@ -341,10 +332,10 @@ export default defineComponent({
         width: textWidth
       }
     },
-    getValueLabelProps(index: number): object {
-      const barProps = this.getBarProps(index)
-      const labelX = barProps.x + barProps.width / 2
-      const labelY = barProps.y - 5 // Adjust the value label position as needed
+    getValueLabelProps(index: number): SVGAttributes {
+      const sectionStartX = this.getStartFirstSeriesX + index * (this.getSectionWidth + this.getGap)
+      const labelX = sectionStartX + this.getSectionWidth / 2
+      const labelY = this.getHeight - (this.getGap * 2) - 5 
       return {
         x: labelX,
         y: labelY,
@@ -357,7 +348,7 @@ export default defineComponent({
         }
       }
     },
-    getValueTickProps(index: number): object {
+    getValueTickProps(index: number): SVGAttributes {
       const lastTicksIndex = this.getValueTicks.length - 1
       const firstTickY = this.getHeight - this.getGap * 2
       const lastTickY = this.getGap
@@ -371,7 +362,7 @@ export default defineComponent({
         fill: 'none'
       }
     },
-    getValueAxisTitleProps(index: number): object {
+    getValueAxisTitleProps(index: number): SVGAttributes {
       const lastIndex = this.getValueTicks.length - 1
       const firstLabelY = this.getHeight - this.getGap * 2
       const lastLabelY = this.getGap
@@ -390,7 +381,7 @@ export default defineComponent({
         }
       }
     },
-    getHorizontalGridLineProps(index: number): object {
+    getHorizontalGridLineProps(index: number): SVGAttributes {
       const lastTicksIndex = this.getValueTicks.length - 1
       const firstTickY = this.getHeight - this.getGap * 2
       const lastTickY = this.getGap
@@ -404,7 +395,7 @@ export default defineComponent({
         ...this.horizontalGridLineOptions
       }
     },
-    getVerticalGridLineProps(index: number): object {
+    getVerticalGridLineProps(index: number): SVGAttributes {
       const firstTickX = this.getStartFirstSeriesX + this.getSectionWidth + this.getGap / 2
       const startX = firstTickX + index * (this.getSectionWidth + this.getGap)
       const startY = this.getHeight - this.getGap * 2
@@ -420,7 +411,6 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-
 $animation-duration: v-bind(animationDuration);
 $animation-type: cubic-bezier(0.23, 1, 0.32, 1);
 .bar.animation {
