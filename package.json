@@ -1,6 +1,7 @@
 {
   "name": "vue-chartify",
   "version": "1.0.1",
+  "description": "A comprehensive and easy-to-use charting library for Vue.js applications. With interactive features and extensive customization options, the Vue Charting Package is the perfect solution for adding data visualizations to your Vue.js applications.",
   "type": "module",
   "files": ["dist"],
   "main": "./dist/vue-chartify.umd.cjs",
@@ -15,9 +16,21 @@
   "types": "./dist/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Behkha/vue-chartify.git"
+    "url": "https://github.com/behkha/vue-chartify.git"
   },
-  "homepage": "https://github.com/Behkha/vue-chartify#readme",
+  "keywords": [
+    "vue",
+    "chartify",
+    "chart",
+    "vue-chart",
+    "vue-chartify"
+  ],
+  "author": "behkha",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/behkha/vue-chartify/issues"
+  },
+  "homepage": "https://github.com/behkha/vue-chartify#readme",
   "scripts": {
     "dev": "vite",
     "build": "run-p type-check \"build-only {@}\" --",
