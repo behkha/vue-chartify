@@ -24,7 +24,7 @@ const roundToDecimalPlaces = (value: number, decimalPlaces: number): number => {
 };
 
 export const getTicks = (min: number, max: number, mostTicks: number): number[] => {
-  const range = max - min
+  const range = max === min ? max : max - min
   const idealTicks = [5, 6, 7, 8, 9, 10]
   const stepItems: Step[] = [];
 
@@ -48,7 +48,6 @@ export const getTicks = (min: number, max: number, mostTicks: number): number[] 
     }
     stepItems.push(step)
   })
-
   const filteredSteps = stepItems.filter(step => step.count <= mostTicks);
   const targetStep = filteredSteps.length > 0 ? filteredSteps[filteredSteps.length - 1] : stepItems[0];
   const decimalPlaces = calculateDecimalPlaces(targetStep.size);

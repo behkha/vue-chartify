@@ -61,7 +61,7 @@
           },
           {
             text: 'item 5',
-            value: 2
+            value: 1
           }
         ]"
         argument-field="text"

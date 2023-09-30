@@ -12,7 +12,7 @@
           </g>
           <g v-if="showVerticalGridLines" class="vertical-grid-lines">
             <path
-              v-for="(tick, index) in getValueTicks"
+              v-for="(tick, index) in getValues"
               :key="index"
               v-bind="getVerticalGridLineProps(index)"
             />
