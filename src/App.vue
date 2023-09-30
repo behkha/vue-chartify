@@ -1,7 +1,7 @@
 <template>
   <div class="main">
     <div class="charts">
-      <bar-chart
+      <vc-bar-chart
         :data-source="ageDataSource"
         argument-field="state"
         value-field="maleyoung"
@@ -17,7 +17,7 @@
         :animation="true"
         :custom-value-label="getValueLabel"
       />
-      <bar-chart
+      <vc-bar-chart
         :data-source="ageDataSource"
         argument-field="state"
         value-field="malemiddle"
@@ -33,7 +33,7 @@
         :animation="true"
         :custom-value-label="getValueLabel"
       />
-      <bar-chart
+      <vc-bar-chart
         :data-source="[
           {
             text: 'item 1',
@@ -80,7 +80,7 @@
       />
     </div>
     <div class="charts">
-      <line-chart
+      <vc-line-chart
         :data-source="dataSource"
         argument-field="continent"
         value-field="area"
@@ -97,7 +97,7 @@
         :custom-value-label="getValueLabel"
         :show-points="true"
       />
-      <line-chart
+      <vc-line-chart
         :data-source="dataSource"
         argument-field="continent"
         value-field="population"
@@ -161,10 +161,10 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import LineChart from './components/LineChart.vue'
-import BarChart from './components/BarChart.vue'
+import VcLineChart from './components/VcLineChart.vue'
+import VcBarChart from './components/VcBarChart.vue'
 export default defineComponent({
-  components: { LineChart, BarChart },
+  components: { VcLineChart, VcBarChart },
   data() {
     return {
       dataSource: [

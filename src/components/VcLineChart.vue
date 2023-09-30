@@ -206,6 +206,16 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
+
+.chart-container {
+  width: 100%;
+  display: block;
+}
+
+.line.animation {
+  animation: drawPolyline 2s linear forwards;
+}
+
 @keyframes drawPolyline {
   from {
     stroke-dashoffset: 100%;
@@ -213,9 +223,5 @@ export default defineComponent({
   to {
     stroke-dashoffset: 0;
   }
-}
-
-.line.animation {
-  animation: drawPolyline 2s linear forwards;
 }
 </style>

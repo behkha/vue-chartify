@@ -1,7 +1,7 @@
-import BarChart from "./components/BarChart.vue";
-import LineChart from "./components/LineChart.vue";
+import VcBarChart from "./components/VcBarChart.vue";
+import VcLineChart from "./components/VcLineChart.vue";
 
 export {
-  BarChart,
-  LineChart
+  VcBarChart,
+  VcLineChart
 };

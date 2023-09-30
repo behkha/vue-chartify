@@ -223,6 +223,11 @@ export default defineComponent({
 
 $animation-duration: v-bind(animationDuration);
 $animation-type: cubic-bezier(0.23, 1, 0.32, 1);
+
+.chart-container {
+  width: 100%;
+  display: block;
+}
 .bar.animation {
   transition:
     width $animation-duration $animation-type,
