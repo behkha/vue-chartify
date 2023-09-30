@@ -1,6 +1,6 @@
 <template>
   <div class="chart-container">
-    <svg v-bind="getChartSvgProps" ref="svg">
+    <svg v-bind="getSvgProps" ref="svg">
       <defs>
         <clipPath :id="`${getId}-round-corner`">
           <rect
@@ -114,6 +114,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import ChartMixin from '../mixins/ChartMixin.vue'
+import type { SVGAttributes } from 'vue'
 
 export default defineComponent({
   mixins: [ChartMixin],
@@ -137,33 +138,23 @@ export default defineComponent({
     }
   },
   emits: ['bar:click'],
-  computed: {
-    getMaxBarHeight(): number {
-      return this.getHeight - this.getGap * 2
-    }
-  },
   methods: {
     getBarColor(index: number): string {
       if (this.barColors.length > 0 && this.barColors.length - 1 >= index) {
-        return this.barColors[index]
+        return this.barColors[index] || this.barColor
       }
       return this.barColor
     },
-    getBarProps(index: number): object {
+    getBarProps(index: number): SVGAttributes {
+      const zeroPoint = this.getChartZeroPoint
       const maxValue = this.getMaxValueTick
       const currentValue = this.getValues[index]
-      const y =
-        this.getHeight -
-        this.getGap * 2 -
-        ((currentValue / maxValue) * (this.getMaxBarHeight - this.getGap) || 0)
+      const y = zeroPoint.y - (currentValue / maxValue) * (zeroPoint.y - this.getGap)
       const isHovered = this.hoveredBarIndex === index
       const color = isHovered ? `url(#${this.getId})` : this.getBarColor(index)
-      const x = Math.max(
-        this.getStartFirstSeriesX + index * (this.getSectionWidth + this.getGap),
-        0
-      )
-      const width = Math.max(this.getSectionWidth, 5)
-      const height = Math.max(this.getMaxBarHeight - y, 0)
+      const x = Math.max(this.getSeriesStartX + index * (this.getSeriesWidth + this.getGap), 0)
+      const width = Math.max(this.getSeriesWidth, 5)
+      const height = Math.max(zeroPoint.y - y, 0)
       return {
         x: x,
         y: Math.max(y, 0),
@@ -193,26 +184,50 @@ export default defineComponent({
       }
     },
     getClipBarProps(index: number): object {
+      const zeroPoint = this.getChartZeroPoint
       const maxValue = this.getMaxValueTick
       const currentValue = this.getValues[index]
-      const y =
-        this.getHeight -
-        this.getGap * 2 -
-        ((currentValue / maxValue) * (this.getMaxBarHeight - this.getGap) || 0)
+      const y = zeroPoint.y - (currentValue / maxValue) * (zeroPoint.y - this.getGap)
       const isHovered = this.hoveredBarIndex === index
       const color = isHovered ? `url(#${this.getId})` : this.getBarColor(index)
-      const x = Math.max(
-        this.getStartFirstSeriesX + index * (this.getSectionWidth + this.getGap),
-        0
-      )
+      const x = Math.max(this.getSeriesStartX + index * (this.getSeriesWidth + this.getGap), 0)
       return {
         x: x,
         y: Math.max(y, 0),
-        width: Math.max(this.getSectionWidth, 5),
-        height: Math.max(this.getMaxBarHeight, 0),
+        width: Math.max(this.getSeriesWidth, 5),
+        height: Math.max(zeroPoint.y, 0),
         fill: color
+      }
+    },
+    getValueLabelProps(index: number): SVGAttributes {
+      const { y } = this.getBarProps(index)
+      const labelX = this.getSeriesCenterX(index)
+      const labelY = Number(y) - 5
+      return {
+        x: labelX,
+        y: labelY,
+        'text-anchor': 'middle',
+        fill: this.fontColor,
+        'font-size': this.fontSize,
+        'font-family': this.fontFamily,
+        style: {
+          'user-select': 'none'
+        }
       }
     }
   }
 })
 </script>
+
+<style lang="scss" scoped>
+
+$animation-duration: v-bind(animationDuration);
+$animation-type: cubic-bezier(0.23, 1, 0.32, 1);
+.bar.animation {
+  transition:
+    width $animation-duration $animation-type,
+    height $animation-duration $animation-type,
+    fill $animation-duration $animation-type,
+    y $animation-duration $animation-type;
+}
+</style>

@@ -34,9 +34,38 @@
         :custom-value-label="getValueLabel"
       />
       <bar-chart
-        :data-source="ageDataSource"
-        argument-field="state"
-        value-field="maleolder"
+        :data-source="[
+          {
+            text: 'item 1',
+            value: 1
+          },
+          {
+            text: 'item 2',
+            value: 2
+          },
+          {
+            text: 'item 3',
+            value: 3
+          },
+          {
+            text: 'item 4',
+            value: 4
+          },
+          {
+            text: 'item 5',
+            value: 5
+          },
+          {
+            text: 'item 5',
+            value: 6
+          },
+          {
+            text: 'item 5',
+            value: 2
+          }
+        ]"
+        argument-field="text"
+        value-field="value"
         :show-value-axis-line="showValueAxisLine"
         :show-argument-axis-line="showArgumentAxisLine"
         :show-value-titles="showValueTitles"
@@ -259,6 +288,10 @@ export default defineComponent({
   },
   methods: {
     getValueLabel(value: number) {
+      if (value > 0 && value < 1) {
+        const precision = Math.ceil(-Math.log10(value))
+        return value.toFixed(precision)
+      }
       return value.toLocaleString()
     }
   }

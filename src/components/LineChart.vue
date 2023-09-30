@@ -1,6 +1,6 @@
 <template>
   <div class="chart-container">
-    <svg v-bind="getChartSvgProps" ref="svg">
+    <svg v-bind="getSvgProps" ref="svg">
       <g class="grid">
         <g class="grid-lines">
           <g v-if="showHorizontalGridLines" class="horizontal-grid-lines">
@@ -94,7 +94,7 @@
 import { defineComponent } from 'vue'
 import ChartMixin from '../mixins/ChartMixin.vue'
 import { isHighPivot } from '../utils/lineChart'
-import type { PolylineAttributes } from '../types/attributes.types';
+import type { PolylineAttributes } from '../types/attributes.types'
 
 export default defineComponent({
   mixins: [ChartMixin],
@@ -123,20 +123,16 @@ export default defineComponent({
       return this.getHeight - this.getGap * 2
     },
     getPolylineProps(): PolylineAttributes {
-      const maxValue = this.getMaxValueTick
-      const firstLineX = this.getGap * 3 + this.getSectionWidth / 2
+      const zeroPoint = this.getChartZeroPoint
+      const maxValue = this.getMaxValueTick === 0 ? 1 : this.getMaxValueTick
+      const firstLineX = this.getSeriesCenterX(0)
       const firstLineY =
-        this.getHeight -
-        this.getGap * 2 -
-        ((this.getValues[0] / maxValue) * (this.getMaxBarHeight - this.getGap) || 0)
+        zeroPoint.y - ((this.getValues[0] / maxValue) * (zeroPoint.y - this.getGap) || 0)
       const xValues = [firstLineX]
       const yValues = [firstLineY]
       for (let i = 1; i < this.getValues.length; i++) {
-        const x = xValues[i - 1] + (this.getSectionWidth + this.getGap)
-        const y =
-          this.getHeight -
-          this.getGap * 2 -
-          ((this.getValues[i] / maxValue) * (this.getMaxBarHeight - this.getGap) || 0)
+        const x = xValues[i - 1] + (this.getSeriesWidth + this.getGap)
+        const y = zeroPoint.y - ((this.getValues[i] / maxValue) * (zeroPoint.y - this.getGap) || 0)
 
         xValues.push(x)
         yValues.push(y)
@@ -156,8 +152,8 @@ export default defineComponent({
   },
   methods: {
     getValueLabelProps(index: number): object {
-      const { xValues, yValues } = this.getPolylineProps
-      const labelX = xValues[index]
+      const { yValues } = this.getPolylineProps
+      const labelX = this.getSeriesCenterX(index)
       const labelY = yValues[index] // Adjust the value label position as needed
       const highPivot = isHighPivot(this.getValues, index)
       const offset = highPivot ? -20 : 20

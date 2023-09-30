@@ -1,13 +1,16 @@
 {
   "extends": "@vue/tsconfig/tsconfig.dom.json",
-  "include": ["env.d.ts", "src/**/*", "src/**/*.vue",  "./src/types/**/*"],
+  "include": ["env.d.ts", "src/**/*", "src/**/*.vue", "./src/types/**/*", "./src/types/**/*.ts"],
   "exclude": ["src/**/__tests__/*"],
   "compilerOptions": {
     "composite": true,
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@types/*": ["./src/types/*"]
+      "@components/*": ["./src/components/*"],
+      "@types/*": ["./src/types/*"],
+      "@utils/*": ["./src/utils/*"],
+      "@mixins/*": ["./src/mixins/*"]
     }
   }
 }

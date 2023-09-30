@@ -4,12 +4,14 @@ import type { PropType } from 'vue'
 import type { GridLineOptions, Breakpoints, Breakpoint } from '../types/chartProps.types'
 import {
   generateUniqueId,
+  getTicks,
   shortenNumber,
-  findNearestMultiple,
   calculateWidthOfText
 } from '../utils/general'
+import { getAxisLineProps } from '../utils/chart'
 import type { SVGAttributes } from 'vue'
-import type { AxisTitleAttributes } from "../types/attributes.types"
+import type { AxisTitleAttributes } from '../types/attributes.types'
+import { AxisLineType } from '../types/axis.types'
 
 export default defineComponent({
   props: {
@@ -101,7 +103,7 @@ export default defineComponent({
     customValueLabel: {
       type: Function,
       // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
-      default: (value: String, index: Number) => {
+      default: (value: number, index: number) => {
         return value
       }
     },
@@ -143,7 +145,19 @@ export default defineComponent({
     getId(): string {
       return this.uniqueId
     },
-    getMaxWidthBreakpoint(): Breakpoint | null {
+    getHeight(): number {
+      return parseInt(this.height, 10)
+    },
+    getWidth(): number {
+      return this.svgWidth
+    },
+    getSvgProps(): SVGAttributes {
+      return {
+        width: this.width,
+        height: this.height
+      }
+    },
+    getMaxBreakpoint(): Breakpoint | null {
       let maxWidth: number = 0
       let maxBreakpoint: Breakpoint | null = null
 
@@ -171,81 +185,47 @@ export default defineComponent({
         }
       }
 
-      return selectedKey ? breakpoints[selectedKey] : this.getMaxWidthBreakpoint
+      return selectedKey ? breakpoints[selectedKey] : this.getMaxBreakpoint
     },
-    getChartSvgProps(): object {
+    getGap(): number {
+      const currentBreakpoint = this.getCurrentBreakpoint
+      if (!currentBreakpoint) return 30
+      return parseInt(currentBreakpoint.gap, 10)
+    },
+    getChartStartX(): number {
+      return this.getGap * 2
+    },
+    getChartStartY(): number {
+      return this.getHeight - this.getGap * 2;
+    },
+    getChartEndX(): number {
+      return this.svgWidth - this.getGap;
+    },
+    getChartZeroPoint(): {
+      x: number
+      y: number
+    } {
       return {
-        width: this.width,
-        height: `${this.getHeight}px`
+        x: this.getChartStartX,
+        y: this.getChartStartY
       }
     },
-    getValuesAxisLineProps(): object {
-      const startX = this.getGap * 2
-      const startY = this.getGap
-      const endY = this.getHeight - this.getGap * 2
-      return {
-        d: `M${startX} ${startY} V${endY}`,
-        stroke: 'black',
-        fill: 'none'
-      }
-    },
-    getArgumentsAxisLineProps(): object {
-      const startX = this.getGap * 2
-      const startY = this.getHeight - this.getGap * 2
-      const endX = this.svgWidth - this.getGap
-      return {
-        d: `M${startX} ${startY} H${endX}`,
-        stroke: 'black',
-        fill: 'none'
-      }
-    },
-    getValues(): number[] {
-      if (!this.valueField) return []
-      return this.localDataSource.map((item: { [key: string]: any }) =>
-        parseInt(item[this.valueField])
-      )
-    },
-    getArguments(): string[] {
-      if (!this.argumentField) return []
-      return this.localDataSource.map((item: { [key: string]: any }) => item[this.argumentField])
-    },
-    getStartFirstSeriesX(): number {
-      return this.getGap * 3
+    getSeriesStartX(): number {
+      return this.getChartStartX + this.getGap;
     },
     getTotalChartGap(): number {
       return (this.getValues.length + 1) * this.getGap
     },
-    getChartWidth(): number {
-      return this.svgWidth - (this.getStartFirstSeriesX + this.getGap)
+    getSeriesGroupWidth(): number {
+      return this.svgWidth - (this.getSeriesStartX + this.getGap)
     },
-    getHeight(): number {
-      return parseFloat(this.height.slice(0, -2))
-    },
-    getGap(): number {
-      const currentBreakpoint = this.getCurrentBreakpoint
-      if (!currentBreakpoint) return 0
-      return parseFloat(currentBreakpoint.gap.slice(0, -2))
-    },
-    getSectionWidth(): number {
-      return this.getChartWidth / this.getValues.length - this.getGap
+    getSeriesWidth(): number {
+      return this.getSeriesGroupWidth / this.getValues.length - this.getGap
     },
     getValueTicks(): number[] {
       const minValue = Math.min(...this.getValues)
       const maxValue = Math.max(...this.getValues)
-      const tickCount = 7
-
-      if (minValue === maxValue) {
-        // Special case: All values are equal
-        return Array.from({ length: tickCount }, () => minValue)
-      }
-
-      const multiple = findNearestMultiple(maxValue - minValue) / 2
-      const maxTickValue = Math.ceil(maxValue / multiple) * multiple
-
-      const stepSize = maxTickValue / (tickCount - 1)
-      const tickValues = Array.from({ length: tickCount }, (_, index) => index * stepSize)
-
-      return tickValues
+      return getTicks(minValue, maxValue, 10)
     },
     getValueTickTitles(): string[] {
       return this.getValueTicks.map((item: number) => shortenNumber(item))
@@ -253,6 +233,34 @@ export default defineComponent({
     getMaxValueTick(): number {
       const length = this.getValueTicks.length
       return this.getValueTicks[length - 1]
+    },
+    getValuesAxisLineProps(): SVGAttributes {
+      const zeroPoint = this.getChartZeroPoint
+      return getAxisLineProps({
+        startX: zeroPoint.x,
+        startY: this.getGap,
+        type: AxisLineType.vertical,
+        end: zeroPoint.y
+      })
+    },
+    getArgumentsAxisLineProps(): SVGAttributes {
+      const zeroPoint = this.getChartZeroPoint
+      return getAxisLineProps({
+        startX: zeroPoint.x,
+        startY: zeroPoint.y,
+        type: AxisLineType.horizontal,
+        end: this.getChartEndX
+      })
+    },
+    getValues(): number[] {
+      if (!this.valueField) return []
+      return this.localDataSource.map((item: { [key: string]: any }) =>
+        parseFloat(item[this.valueField])
+      )
+    },
+    getArguments(): string[] {
+      if (!this.argumentField) return []
+      return this.localDataSource.map((item: { [key: string]: any }) => item[this.argumentField])
     }
   },
   watch: {
@@ -287,9 +295,13 @@ export default defineComponent({
       // @ts-ignore
       this.svgWidth = svg.clientWidth
     },
+    getSeriesCenterX(index: number): number {
+      const seriesWidthWithGap = this.getSeriesWidth + this.getGap
+      return this.getSeriesStartX + this.getSeriesWidth / 2 + index * seriesWidthWithGap
+    },
     getArgumentTickProps(index: number): SVGAttributes {
-      const firstTickX = this.getStartFirstSeriesX + this.getSectionWidth + this.getGap / 2
-      const startX = firstTickX + index * (this.getSectionWidth + this.getGap)
+      const firstTickX = this.getSeriesStartX + this.getSeriesWidth + this.getGap / 2
+      const startX = firstTickX + index * (this.getSeriesWidth + this.getGap)
       const startY = this.getHeight - this.getGap * 2
       const endY = this.getHeight - this.getGap * 2 + 5
       return {
@@ -298,9 +310,22 @@ export default defineComponent({
         fill: 'none'
       }
     },
+    getValueTickProps(index: number): SVGAttributes {
+      const lastTicksIndex = this.getValueTicks.length - 1
+      const firstTickY = this.getHeight - this.getGap * 2
+      const lastTickY = this.getGap
+      const normalizedIndex = index / lastTicksIndex
+      const tickX = this.getGap * 2
+      const tickY = firstTickY + normalizedIndex * (lastTickY - firstTickY)
+      const endX = tickX - 5
+      return {
+        d: `M${tickX} ${tickY} H${endX}`,
+        stroke: 'black',
+        fill: 'none'
+      }
+    },
     getArgumentAxisTitleProps(index: number): AxisTitleAttributes {
-      const barWidthWithGap = this.getSectionWidth + this.getGap
-      const titleX = this.getStartFirstSeriesX + this.getSectionWidth / 2 + index * barWidthWithGap
+      const titleX = this.getSeriesCenterX(index)
       const titleY = this.getHeight - this.getGap
       const textWidth = calculateWidthOfText(
         this.getArguments[index],
@@ -330,36 +355,6 @@ export default defineComponent({
           'user-select': 'none'
         },
         width: textWidth
-      }
-    },
-    getValueLabelProps(index: number): SVGAttributes {
-      const sectionStartX = this.getStartFirstSeriesX + index * (this.getSectionWidth + this.getGap)
-      const labelX = sectionStartX + this.getSectionWidth / 2
-      const labelY = this.getHeight - (this.getGap * 2) - 5 
-      return {
-        x: labelX,
-        y: labelY,
-        'text-anchor': 'middle',
-        fill: this.fontColor,
-        'font-size': this.fontSize,
-        'font-family': this.fontFamily,
-        style: {
-          'user-select': 'none'
-        }
-      }
-    },
-    getValueTickProps(index: number): SVGAttributes {
-      const lastTicksIndex = this.getValueTicks.length - 1
-      const firstTickY = this.getHeight - this.getGap * 2
-      const lastTickY = this.getGap
-      const normalizedIndex = index / lastTicksIndex
-      const tickX = this.getGap * 2
-      const tickY = firstTickY + normalizedIndex * (lastTickY - firstTickY)
-      const endX = tickX - 5
-      return {
-        d: `M${tickX} ${tickY} H${endX}`,
-        stroke: 'black',
-        fill: 'none'
       }
     },
     getValueAxisTitleProps(index: number): SVGAttributes {
@@ -396,8 +391,8 @@ export default defineComponent({
       }
     },
     getVerticalGridLineProps(index: number): SVGAttributes {
-      const firstTickX = this.getStartFirstSeriesX + this.getSectionWidth + this.getGap / 2
-      const startX = firstTickX + index * (this.getSectionWidth + this.getGap)
+      const firstTickX = this.getSeriesStartX + this.getSeriesWidth + this.getGap / 2
+      const startX = firstTickX + index * (this.getSeriesWidth + this.getGap)
       const startY = this.getHeight - this.getGap * 2
       const endY = this.getGap
       return {
