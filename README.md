@@ -34,13 +34,13 @@ createApp(App).mount('#app')
 - Import the component
 
 ```javascript
-<script>
-import { defineComponent } from 'vue'
-import { VcBarChart, VcLineChart } from 'vue-chartify';
-export default defineComponent({
-    components: { VcBarChart, VcLineChart },
-    // rest of your component
-})
+<script lang="ts">
+  import { defineComponent } from 'vue'
+  import { VcBarChart, VcLineChart } from 'vue-chartify';
+  export default defineComponent({
+      components: { VcBarChart, VcLineChart },
+      // rest of your component
+  })
 </script>
 ```
 
