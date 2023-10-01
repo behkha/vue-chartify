@@ -404,15 +404,3 @@ export default defineComponent({
   }
 })
 </script>
-
-<style lang="scss" scoped>
-$animation-duration: v-bind(animationDuration);
-$animation-type: cubic-bezier(0.23, 1, 0.32, 1);
-.bar.animation {
-  transition:
-    width $animation-duration $animation-type,
-    height $animation-duration $animation-type,
-    fill $animation-duration $animation-type,
-    y $animation-duration $animation-type;
-}
-</style>

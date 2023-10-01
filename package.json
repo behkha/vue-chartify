@@ -1,6 +1,6 @@
 {
   "name": "vue-chartify",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A comprehensive and easy-to-use charting library for Vue.js applications. With interactive features and extensive customization options, the Vue Charting Package is the perfect solution for adding data visualizations to your Vue.js applications.",
   "type": "module",
   "files": ["dist"],
